@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>Call</title>
+<style>
+  :root { color-scheme: dark light; --bg:#000; --fg:#F2F0EA; --mut:#9A978F; --gold:#C9A227; }
+  @media (prefers-color-scheme: light) { :root { --bg:#F4F2EC; --fg:#141416; --mut:#5E5B54; --gold:#8F6E0E; } }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--fg); font:16px/1.4 -apple-system, system-ui, sans-serif;
+         display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; padding:24px 16px; text-align:center; }
+  .num { font:600 30px ui-monospace, Menlo, monospace; letter-spacing:.02em; }
+  .ext { color:var(--mut); font-size:15px; }
+  a.call { display:inline-block; min-width:220px; padding:16px 28px; border-radius:999px; background:var(--gold); color:#000;
+           font-weight:700; font-size:19px; text-decoration:none; }
+  p { color:var(--mut); margin:0; max-width:320px; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="num" id="num">—</div>
+<div class="ext" id="ext"></div>
+<a class="call" id="call" href="#" hidden>Call</a>
+<p id="msg">No number was given.</p>
+<script>
+/* TFC dial helper. Usage: https://<host>/dial/#3105550100 or #3105550100,204 (comma = pause, then extension).
+   The number lives after "#", so it is never sent to the web server. Only digits, a leading +, and one comma are accepted,
+   and this page can only start a phone call; it never sends anyone to another website. */
+(function () {
+  var raw = '';
+  try { raw = decodeURIComponent((location.hash || '').slice(1)); } catch (e) {}
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  var m = raw.match(/^\s*(\+?\d{3,15})(?:,(\d{1,6}))?\s*$/);
+  if (!m) return;
+  var main = m[1], ext = m[2] || '';
+  var d = main.replace(/^\+?1?(?=\d{10}$)/, '');
+  var pretty = /^\d{10}$/.test(d) ? '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6) : main;
+  var tel = 'tel:' + main + (ext ? ',' + ext : '');
+  document.getElementById('num').textContent = pretty;
+  if (ext) document.getElementById('ext').textContent = 'then extension ' + ext;
+  var a = document.getElementById('call');
+  a.href = tel; a.hidden = false; a.textContent = 'Call ' + pretty;
+  document.getElementById('msg').textContent = 'If your phone didn’t ask to call, tap the button. You can close this page afterward.';
+  location.href = tel;
+})();
+</script>
+</body>
+</html>
