@@ -69,6 +69,17 @@
   var a = document.getElementById('call');
   a.href = tel; a.hidden = false; a.textContent = 'Call ' + pretty;
   document.getElementById('msg').textContent = 'If your phone didn’t ask to call, tap the button. You can close this page afterward.';
+  // Once the call starts, the Phone app takes over and this page goes to the background: try to close it then, and
+  // again when it comes back. A cancelled "Call …?" prompt doesn't hide the page, so it stays open for the button.
+  // Phones may ignore window.close() (for example inside an app's own browser); then it simply stays open.
+  var handedOff = false, wasHidden = false;
+  var tryClose = function () { try { window.close(); } catch (e) {} };
+  document.addEventListener('visibilitychange', function () {
+    if (!handedOff) return;
+    if (document.hidden) { wasHidden = true; tryClose(); } else if (wasHidden) tryClose();
+  });
+  a.addEventListener('click', function () { handedOff = true; });
+  handedOff = true;
   location.href = tel;
 })();
 </script>
