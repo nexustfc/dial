@@ -29,6 +29,7 @@
 <div class="ext" id="ext"></div>
 <a class="call" id="call" href="#" hidden>Call</a>
 <p id="msg">No number was given.</p>
+<p id="got" style="font-size:12px;opacity:.7"></p>
 <script>
 /* TFC dial helper. Usage: https://<host>/dial/#3105550100 or #3105550100,204 (comma = pause, then extension),
    or #t=3105550100,204&n=<name>&c=<company>&k=<Office|Mobile|...> from Nexus Switchboard.
@@ -37,7 +38,11 @@
    80 characters at most. This page can only start a phone call; it never sends anyone to another website. */
 (function () {
   var frag = (location.hash || '').slice(1), raw = '', who = {};
+  // What reached the page, for troubleshooting (lengths only, never the details themselves).
+  var got = 'Arrived with: ' + (frag ? '#details (' + frag.length + ' characters)' : 'no #details') + ', ' + (location.search.length > 1 ? '?details (' + (location.search.length - 1) + ' characters)' : 'no ?details') + '.';
+  if (!frag && location.search.length > 1) frag = location.search.slice(1);
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  document.getElementById('got').textContent = got;
   var clean = function (x) { return String(x || '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80); };
   if (frag.indexOf('=') >= 0) {
     try { var q = new URLSearchParams(frag); raw = q.get('t') || ''; who = { n: clean(q.get('n')), c: clean(q.get('c')), k: clean(q.get('k')) }; } catch (e) {}
