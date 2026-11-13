@@ -44,13 +44,19 @@
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
   document.getElementById('got').textContent = got;
   var clean = function (x) { return String(x || '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80); };
+  // The Claude iPhone app can hand over the part after # re-encoded (%3D for =, %26 for &), so undo up to three
+  // layers of encoding, and an HTML-escaped &amp;, before reading it.
+  for (var i = 0; i < 3 && !/[=&]/.test(frag) && /%[0-9a-f]{2}/i.test(frag); i++) { try { frag = decodeURIComponent(frag); } catch (e) { break; } }
+  frag = frag.replace(/&amp;/g, '&');
   if (frag.indexOf('=') >= 0) {
     try { var q = new URLSearchParams(frag); raw = q.get('t') || ''; who = { n: clean(q.get('n')), c: clean(q.get('c')), k: clean(q.get('k')) }; } catch (e) {}
   } else {
     try { raw = decodeURIComponent(frag); } catch (e) {}
   }
   var m = raw.match(/^\s*(\+?\d{3,15})(?:,(\d{1,6}))?\s*$/);
-  if (!m) return;
+  // Couldn't read it: show its outline only (digits as 9, letters as a), never the details themselves.
+  var shape = function (x) { return String(x).replace(/\d/g, '9').replace(/[A-Za-z]/g, 'a').replace(/[^\x20-\x7e]/g, '?').slice(0, 120); };
+  if (!m) { document.getElementById('got').textContent = got + ' Could not read it. Outline: ' + shape(frag) + (raw ? ' / number part: ' + shape(raw) : ''); return; }
   var main = m[1], ext = m[2] || '';
   var d = main.replace(/^\+?1?(?=\d{10}$)/, '');
   var pretty = /^\d{10}$/.test(d) ? '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6) : main;
