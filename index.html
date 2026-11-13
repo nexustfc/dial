@@ -35,7 +35,8 @@
    or #t=3105550100,204&n=<name>&c=<company>&k=<Office|Mobile|...> from Nexus Switchboard.
    Everything lives after "#", so it is never sent to the web server, and the page clears it from the address bar.
    Only digits, a leading +, and one comma are accepted for the number; name, company and type are shown as plain text,
-   80 characters at most. This page can only start a phone call; it never sends anyone to another website. */
+   80 characters at most. This page can only start a phone call, and only when the Call button is tapped; it never
+   sends anyone to another website. */
 (function () {
   var frag = (location.hash || '').slice(1), raw = '', who = {};
   // What reached the page, shown only when it can't be read (lengths only, never the details themselves).
@@ -68,19 +69,8 @@
   if (ext) document.getElementById('ext').textContent = 'then extension ' + ext;
   var a = document.getElementById('call');
   a.href = tel; a.hidden = false; a.textContent = 'Call ' + pretty;
-  document.getElementById('msg').textContent = 'If your phone didn’t ask to call, tap the button. You can close this page afterward.';
-  // Once the call starts, the Phone app takes over and this page goes to the background: try to close it then, and
-  // again when it comes back. A cancelled "Call …?" prompt doesn't hide the page, so it stays open for the button.
-  // Phones may ignore window.close() (for example inside an app's own browser); then it simply stays open.
-  var handedOff = false, wasHidden = false;
-  var tryClose = function () { try { window.close(); } catch (e) {} };
-  document.addEventListener('visibilitychange', function () {
-    if (!handedOff) return;
-    if (document.hidden) { wasHidden = true; tryClose(); } else if (wasHidden) tryClose();
-  });
-  a.addEventListener('click', function () { handedOff = true; });
-  handedOff = true;
-  location.href = tel;
+  document.getElementById('msg').textContent = 'Tap to call. You can close this page afterward.';
+  // No automatic call: iPhone needs a tap before it will offer to call, and it ignores window.close() (tested 2026-11-13).
 })();
 </script>
 </body>
