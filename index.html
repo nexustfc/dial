@@ -38,11 +38,10 @@
    80 characters at most. This page can only start a phone call; it never sends anyone to another website. */
 (function () {
   var frag = (location.hash || '').slice(1), raw = '', who = {};
-  // What reached the page, for troubleshooting (lengths only, never the details themselves).
+  // What reached the page, shown only when it can't be read (lengths only, never the details themselves).
   var got = 'Arrived with: ' + (frag ? '#details (' + frag.length + ' characters)' : 'no #details') + ', ' + (location.search.length > 1 ? '?details (' + (location.search.length - 1) + ' characters)' : 'no ?details') + '.';
   if (!frag && location.search.length > 1) frag = location.search.slice(1);
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
-  document.getElementById('got').textContent = got;
   var clean = function (x) { return String(x || '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80); };
   // The Claude iPhone app can hand over the part after # re-encoded (%3D for =, %26 for &), so undo up to three
   // layers of encoding, and an HTML-escaped &amp;, before reading it.

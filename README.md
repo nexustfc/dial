@@ -15,3 +15,7 @@ sends the call's Re: line or anything else from the call record.
   someone tampering with this page.
 
 Owner: Andrew (IT). Nexus notes: `tfc-nexus-database/docs/claude-notes/phonesheet.md`.
+
+Found 2026-11-13: the Claude iPhone app passes the part after `#` along re-encoded (`%3D` for `=`, `%26` for `&`),
+so the page undoes up to three layers of encoding before reading it. If it still can't read a link, a small grey
+line shows what arrived (lengths and a masked outline only: digits as 9, letters as a).
