@@ -13,6 +13,9 @@
   * { box-sizing: border-box; }
   body { margin:0; min-height:100vh; background:var(--bg); color:var(--fg); font:16px/1.4 -apple-system, system-ui, sans-serif;
          display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; padding:24px 16px; text-align:center; }
+  .who { display:flex; flex-direction:column; gap:4px; max-width:340px; }
+  .name { font-size:24px; font-weight:700; overflow-wrap:anywhere; }
+  .meta { color:var(--mut); font-size:15px; overflow-wrap:anywhere; }
   .num { font:600 30px ui-monospace, Menlo, monospace; letter-spacing:.02em; }
   .ext { color:var(--mut); font-size:15px; }
   a.call { display:inline-block; min-width:220px; padding:16px 28px; border-radius:999px; background:var(--gold); color:#000;
@@ -21,18 +24,26 @@
 </style>
 </head>
 <body>
+<div class="who"><div class="name" id="name" hidden></div><div class="meta" id="meta" hidden></div></div>
 <div class="num" id="num">—</div>
 <div class="ext" id="ext"></div>
 <a class="call" id="call" href="#" hidden>Call</a>
 <p id="msg">No number was given.</p>
 <script>
-/* TFC dial helper. Usage: https://<host>/dial/#3105550100 or #3105550100,204 (comma = pause, then extension).
-   The number lives after "#", so it is never sent to the web server. Only digits, a leading +, and one comma are accepted,
-   and this page can only start a phone call; it never sends anyone to another website. */
+/* TFC dial helper. Usage: https://<host>/dial/#3105550100 or #3105550100,204 (comma = pause, then extension),
+   or #t=3105550100,204&n=<name>&c=<company>&k=<Office|Mobile|...> from Nexus Switchboard.
+   Everything lives after "#", so it is never sent to the web server, and the page clears it from the address bar.
+   Only digits, a leading +, and one comma are accepted for the number; name, company and type are shown as plain text,
+   80 characters at most. This page can only start a phone call; it never sends anyone to another website. */
 (function () {
-  var raw = '';
-  try { raw = decodeURIComponent((location.hash || '').slice(1)); } catch (e) {}
+  var frag = (location.hash || '').slice(1), raw = '', who = {};
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  var clean = function (x) { return String(x || '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80); };
+  if (frag.indexOf('=') >= 0) {
+    try { var q = new URLSearchParams(frag); raw = q.get('t') || ''; who = { n: clean(q.get('n')), c: clean(q.get('c')), k: clean(q.get('k')) }; } catch (e) {}
+  } else {
+    try { raw = decodeURIComponent(frag); } catch (e) {}
+  }
   var m = raw.match(/^\s*(\+?\d{3,15})(?:,(\d{1,6}))?\s*$/);
   if (!m) return;
   var main = m[1], ext = m[2] || '';
@@ -40,6 +51,10 @@
   var pretty = /^\d{10}$/.test(d) ? '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6) : main;
   var tel = 'tel:' + main + (ext ? ',' + ext : '');
   document.getElementById('num').textContent = pretty;
+  var nm = document.getElementById('name'), mt = document.getElementById('meta');
+  if (who.n) { nm.textContent = who.n; nm.hidden = false; document.title = 'Call ' + who.n; }
+  var meta = [who.c, who.k].filter(Boolean).join(' · ');
+  if (meta) { mt.textContent = meta; mt.hidden = false; }
   if (ext) document.getElementById('ext').textContent = 'then extension ' + ext;
   var a = document.getElementById('call');
   a.href = tel; a.hidden = false; a.textContent = 'Call ' + pretty;
